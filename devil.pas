@@ -66,7 +66,7 @@ begin
   Parsa.Expression:=fun;
   Parsa.NewValue('x',xx);
   Result:= Parsa.Evaluate();
-end;
+end;                        
 function Ddevil.derivada( xx:Real):Real;
 begin
   Parsa.Expression:=derv;
@@ -97,7 +97,8 @@ function Ddevil.Ejecuta():String;
      begin
        fa:= funcion(x0);
        fb:= funcion(xf);
-       if (fa * fb )<=0 then
+//       Message:= FloatToStr(fa) + ' y '+ FloatToStr(fb);
+       if (fa * fb )<= 0 then
        begin
          case Met of
            0: Result:= Biseccion();
@@ -292,5 +293,4 @@ begin
    Result:=FloatToStr(xn);//IntToStr(Met);//
 end;
 end.
-
 
