@@ -176,6 +176,16 @@ begin
      Result.resFloat := power(x,y);
 
 end;
+Procedure ExprExp( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  x,y: Double;
+begin
+    x := ArgToFloat( Args[ 0 ] );
+
+
+    Result.resFloat := exp(x);
+
+end;
 
 
 Procedure TParseMath.AddFunctions();
@@ -186,6 +196,7 @@ begin
        AddFunction('sen', 'F', 'F', @ExprSin);
        AddFunction('cos', 'F', 'F', @ExprCos);
        AddFunction('ln', 'F', 'F', @ExprLn);
+       AddFunction('exp', 'F','F',@ExprExp);
        AddFunction('log', 'F', 'F', @ExprLog);
        AddFunction('sqrt', 'F', 'F', @ExprSQRT);
        AddFunction('floor', 'F', 'F', @ExprFloor );
