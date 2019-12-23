@@ -1,6 +1,0 @@
-integral:	metodo del trapecio
-grafo:		clase abstracta
-ADA:		estudiar las pruebas
-patronesDiseño:	hacer reporte
-relativismo:	hacer resumen y comentario
-condicionRace:	leer y resumir Paper
