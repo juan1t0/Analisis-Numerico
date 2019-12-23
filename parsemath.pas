@@ -48,7 +48,6 @@ end;
 function TParseMath.NewValue( Variable: string; Value: Double ): Double;
 begin
     FParser.IdentifierByName(Variable).AsFloat:= Value;
-
 end;
 
 function TParseMath.Evaluate(): Double;
@@ -90,24 +89,26 @@ begin
      Result.resFloat := NaN;
 end;
 {
-Procedure ExprNewton( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+Procedure ExprTrapecio( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 var
-  x: Double;
+  a,b: Double;
   f: string;
-  TheNewton: TNewton;
+  Trapecio: ITrapecio;
 begin
    f:= Args[ 0 ].ResString;
-   x:= ArgToFloat( Args[ 1 ] );
+   a:= ArgToFloat( Args[ 1 ] );
+   b:= ArgToFloat( Args[ 2 ] );
 
-   TheNewton:= TNewton.Create;
-   TheNewton.InitialPoint:= x;
-   TheNewton.Expression:= f;
-   Result.ResFloat := TheNewton.Execute;
+   Trapecio:= ITrapecio.create;
+   Trapecio.pt_a:= a;
+   Trapecio.pt_b:= b;
+   Trapecio.fun:=f;
+   Result.ResFloat := StrToFloat(Trapecio.Ejecutar());
 
-   TheNewton.Destroy;
+   Trapecio.Destroy;
 
 end;
-}
+ }
 Procedure ExprSin( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 var
   x: Double;
@@ -165,6 +166,15 @@ begin
 
 end;
 
+Procedure ExprExp( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
+var
+  x: Double;
+begin
+    x := ArgToFloat( Args[ 0 ] );
+    Result.resFloat := exp(x);
+
+end;
+
 Procedure ExprPower( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
 var
   x,y: Double;
@@ -174,16 +184,6 @@ begin
 
 
      Result.resFloat := power(x,y);
-
-end;
-Procedure ExprExp( var Result: TFPExpressionResult; Const Args: TExprParameterArray);
-var
-  x,y: Double;
-begin
-    x := ArgToFloat( Args[ 0 ] );
-
-
-    Result.resFloat := exp(x);
 
 end;
 
@@ -196,12 +196,13 @@ begin
        AddFunction('sen', 'F', 'F', @ExprSin);
        AddFunction('cos', 'F', 'F', @ExprCos);
        AddFunction('ln', 'F', 'F', @ExprLn);
-       AddFunction('exp', 'F','F',@ExprExp);
        AddFunction('log', 'F', 'F', @ExprLog);
        AddFunction('sqrt', 'F', 'F', @ExprSQRT);
+       AddFunction('exp', 'F', 'F', @ExprExp);
        AddFunction('floor', 'F', 'F', @ExprFloor );
        AddFunction('power', 'F', 'FF', @ExprPower); //two float arguments 'FF' , returns float
        //AddFunction('Newton', 'F', 'SF', @ExprNewton ); // Una sring argunmen and one float argument, returns float
+  //     AddFunction('integralT', 'F', 'SF', @ExprTrapecio );
 
    end
 

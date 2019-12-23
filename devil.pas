@@ -13,14 +13,9 @@ type
     x0,
     xf: Real;
     Parsa : TParseMath;
-    Sequence_Xn ,
-    Sequence_A ,
-    Sequence_B ,
-    Sequence_sg ,
-    Sequence_err : TstringList;
-    Message : String;
     fun,derv: String;
     Met: Integer;
+    solu:Boolean;
     private
       Error:Real;
       function Biseccion():String;
@@ -33,6 +28,7 @@ type
       function Ejecuta():String;
       function funcion(xx:Real):Real;
       function derivada(xx:Real):Real;
+      function Defaul():String;
   end;
 
 const
@@ -45,20 +41,9 @@ const
   Top = 100000;
 constructor Ddevil.create;
 begin
-  Sequence_A:= TStringList.Create;
-  Sequence_B:= TStringList.Create;
-  Sequence_Xn:= TStringList.Create;
-  Sequence_sg:= TStringList.Create;
-  Sequence_err:= TStringList.Create;
-  Message := 'Resueltisimo';
   Parsa := TParseMath.create();
   Parsa.AddVariable('x',0.0);
   Error:= Top;
-  x0:=0;
-  xf:=0;
-  Met:=-1;
-//  fun:='x';
-//  derv:='x';
 end;
 
 function Ddevil.funcion( xx:Real):Real;
@@ -75,11 +60,6 @@ begin
 end;
 destructor Ddevil.Destroy;
 begin
-  Sequence_Xn.Destroy;
-  Sequence_A.Destroy;
-  Sequence_B.Destroy;
-  Sequence_err.Destroy;
-  Sequence_sg.Destroy;
   Parsa.destroy;
 end;
 function Power( b: Real; n: Integer ): Real;
@@ -97,7 +77,6 @@ function Ddevil.Ejecuta():String;
      begin
        fa:= funcion(x0);
        fb:= funcion(xf);
-//       Message:= FloatToStr(fa) + ' y '+ FloatToStr(fb);
        if (fa * fb )<= 0 then
        begin
          case Met of
@@ -106,7 +85,7 @@ function Ddevil.Ejecuta():String;
          end;
        end
        else begin
-         Message:='No se puede -';
+         solu:=False;
        end;
      end
      else begin
@@ -116,6 +95,67 @@ function Ddevil.Ejecuta():String;
        end;
      end;
 end;
+function Ddevil.Defaul():String;
+var fxn,h,xn,aux,eerroo,fxh,fhx: Real;
+    n: Integer;
+begin
+   xn:=0;
+   solu:=true;
+   if(funcion(x0)*funcion(xf)) >= 0 then
+   begin
+     n:=0;
+     repeat
+       aux:= xn;
+       xn := (x0+xf)/2;
+       eerroo:= Error;
+       fa:= funcion(x0);
+       fxn:= funcion(xn);
+       if (fa * fxn) < 0.0 then
+         xf:=xn;
+       if (fa * fxn) >= 0.0 then
+         x0:=xn;
+       if n > 0 then
+       begin
+          Error := abs(xn - aux);
+          if (n > 1) then
+          begin
+            if Error = eerroo then
+                Break;
+            if Error > eerroo then
+                Break;
+          end;
+       end;
+       n:=n+1;
+     until (Error < 0.001) or (n>=Top) or (fxn=0);
+   end;
+   n :=1;
+   repeat
+     aux:= xn;
+     fxn:= funcion(xn);
+     h:= ErrorAllowed/10;
+     fxh:=funcion(xn+h);
+     fhx:=funcion(xn-h);
+     xn := xn - (((2*h)*fxn )/(fxh-fhx));
+     eerroo:=Error;
+     Error := abs(xn - aux);
+     if n > 1 then
+     begin
+       if Error = eerroo then
+       begin
+         solu:=false;
+         Break;
+       end;
+       if Error > eerroo then
+       begin
+         solu:=false;
+         Break;
+       end;
+     end;
+     n:=n+1;
+   until (Error < ErrorAllowed) or (n>=Top) or (fxn=0);
+   if solu then
+      Result:=FloatToStr(xn);
+end;
 
 function Ddevil.Biseccion(): String;
 var fxn,xn,aux,eerroo: Real;
@@ -123,48 +163,38 @@ var fxn,xn,aux,eerroo: Real;
 begin
    xn:=0;
    n:=0;
-   Sequence_err.Add(' - ');
+   solu:=True;
    repeat
      aux:= xn;
      xn := (x0+xf)/2;
      eerroo:= Error;
-     Sequence_A.Add(FloatToStr(x0));
-     Sequence_B.Add(FloatToStr(xf));
-     Sequence_Xn.Add(FloatToStr(xn));
      fa:= funcion(x0);
      fxn:= funcion(xn);
      if (fa * fxn) < 0.0 then
-     begin
        xf:=xn;
-       Sequence_sg.Add(FloatToStr(fxn));//' - ');
-     end;
      if (fa * fxn) >= 0.0 then
-     begin
        x0:=xn;
-       Sequence_sg.Add(FloatToStr(fxn));//' + ');
-     end;
      if n > 0 then
      begin
         Error := abs(xn - aux);
-        Sequence_err.Add(FloatToStr(Error));
         if (n > 1) then
         begin
           if Error = eerroo then
             begin
-              Message := 'Error: Puntos oscilando';
+              solu:= False;
               Break;
             end;
           if Error > eerroo then
             begin
-              Message := 'Error: La derivada se acerca a 0';
+              solu:= False;
               Break;
             end;
         end;
      end;
-
      n:=n+1;
    until (Error < ErrorAllowed) or (n>=Top) or (fxn=0);
-   Result:=FloatToStr(xn);
+   if solu then
+      Result:=FloatToStr(xn);
 end;
 
 function Ddevil.NewRaph(): String;
@@ -173,33 +203,30 @@ var fxn,xn,dfxn,aux,eerroo: Real;
 begin
    xn :=x0;
    n :=1;
-   Sequence_err.Add(' - ');
-   Sequence_Xn.Add(FloatToStr(xn));
    repeat
      aux:=xn;
      fxn:= funcion(xn);
      dfxn:= derivada(xn);
      xn := xn - (fxn / dfxn);
-     Sequence_Xn.Add(FloatToStr(xn));
      eerroo:= Error;
      Error := abs(xn - aux);
-     Sequence_err.Add(FloatToStr(Error));
      if n > 1 then
      begin
        if Error = eerroo then
        begin
-         Message := 'Error: Puntos oscilando';
+         solu:=False;
          Break;
        end;
        if Error > eerroo then
        begin
-         Message := 'Error: La derivada se acerca a 0';
+         solu:=False;
          Break;
        end;
      end;
      n:=n+1;
    until (Error < ErrorAllowed) or (n>=Top) or (fxn=0);
-   Result:=FloatToStr(xn);
+   if solu then
+     Result:=FloatToStr(xn);
 end;
 
 function Ddevil.Secante(): String;
@@ -208,8 +235,6 @@ var fxn,fxh,fhx,xn,h,aux,eerroo: Real;
 begin
    xn :=x0;
    n :=1;
-   Sequence_err.Add(' - ');
-   Sequence_Xn.Add(FloatToStr(xn));
    repeat
      aux:= xn;
      fxn:= funcion(xn);
@@ -217,28 +242,26 @@ begin
      fxh:=funcion(xn+h);
      fhx:=funcion(xn-h);
      xn := xn - (((2*h)*fxn )/(fxh-fhx));
-     Sequence_Xn.Add(FloatToStr(xn));
      eerroo:=Error;
      Error := abs(xn - aux);
-     Sequence_err.Add(FloatToStr(Error));
      if n > 1 then
      begin
        if Error = eerroo then
        begin
-         Message := 'Error: Puntos oscilando';
+         solu:=False;
          Break;
        end;
        if Error > eerroo then
        begin
-         Message := 'Error: La derivada se acerca a 0';
+         solu:=False;
          Break;
        end;
      end;
 
      n:=n+1;
    until (Error < ErrorAllowed) or (n>=Top) or (fxn=0);
-   Result:=FloatToStr(xn);//IntToStr(Met);//
-  // Message := 'Resuelto';
+   if solu then
+     Result:=FloatToStr(xn);
 end;
 function Ddevil.FalsaPos(): String;
 var fxn,xn,aux,eerroo: Real;
@@ -246,43 +269,31 @@ var fxn,xn,aux,eerroo: Real;
 begin
    xn :=0;
    n :=0;
-   Sequence_err.Add(' - ');
    repeat
      aux:= xn;
-     Sequence_A.Add(FloatToStr(x0));
-     Sequence_B.Add(FloatToStr(xf));
-
      fa:= funcion(x0);
      fb:= funcion(xf);
      xn := x0-(fa*(xf-x0)/(fb-fa));
-     Sequence_Xn.Add(FloatToStr(xn));
      fxn:= funcion(xn);
      eerroo:=Error;
      if (fa * fxn) < 0.0 then
-     begin
        xf:=xn;
-       Sequence_sg.Add(FloatToStr(fxn));//'   -');
-     end;
-
      if (fa * fxn) >= 0.0 then
-     begin
        x0:=xn;
-       Sequence_sg.Add(FloatToStr(fxn));//'   +');
-     end;
+
      if n > 0 then
      begin
         Error := abs(xn - aux);
-        Sequence_err.Add(FloatToStr(Error));
         if (n > 1) then
         begin
           if Error = eerroo then
             begin
-              Message := 'Error: Puntos oscilando';
+              solu:=False;
               Break;
             end;
           if Error > eerroo then
             begin
-              Message := 'Error: La derivada se acerca a 0';
+              solu:=False;
               Break;
             end;
         end;
@@ -290,7 +301,8 @@ begin
      eerroo := Error;
      n:=n+1;
    until (Error < ErrorAllowed) or (n>=Top) or (fxn=0);
-   Result:=FloatToStr(xn);//IntToStr(Met);//
+   if solu then
+     Result:=FloatToStr(xn);
 end;
 end.
 
